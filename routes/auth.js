@@ -1,9 +1,11 @@
-const express = require("express");
+import express from "express";
+import User from "../models/User.js";
+import { body, validationResult } from "express-validator";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import fetchuser from "../middleware/fetchuser.js";
+
 const router = express.Router();
-const User = require("../models/User");
-const { body, validationResult } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const jwtSECRET = "tanv3r";
 
 // Route 1:  Creating a new User with POST request on "/api/auth/createuser". No login required
@@ -99,13 +101,18 @@ router.post(
 );
 
 // Route 3: Authenticating User with POST request on "/api/auth/getuser".
-router.post("/getuser",async (req, res) => {
+router.post("/getuser", fetchuser, async (req, res) => {
   try {
-    userId = req.user.id;
-    const user = User.findById() 
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(400).send("User Not Found");
+    }
+    res.send(user);
   } catch (error) {
+    console.log(error.message);
     return res.status(400).send("Error in getting user");
   }
 });
 
-module.exports = router;
+export default router;
