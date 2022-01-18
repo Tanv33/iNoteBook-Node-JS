@@ -11,17 +11,17 @@ router.get("/fetchalldata", fetchuser, async (req, res) => {
     const userId = req.user.id;
     const fetchData = await Note.find({ user: userId });
     if (fetchData.length) {
-      console.log("fetcggg:", fetchData);
+      // console.log("fetcggg:", fetchData);
+      res.send(fetchData);
     }
-    console.log(fetchData);
-    res.send(fetchData);
+    // console.log(fetchData);
   } catch (error) {
     console.log(error.message);
     return res.status(400).send("Error in fetching All Data");
   }
 });
 
-//  Route 2 Add Note corresponding user "/addnote" -- login required + validation so user can't send empty fields
+//  Route 2 Add Note corresponding to user "/addnote" -- login required + validation so user can't send empty fields
 router.post(
   "/addnote",
   fetchuser,
@@ -60,5 +60,41 @@ router.post(
     }
   }
 );
+
+//  Route 3 Updating note corresponding to user "/updatenote" -- login required
+router.put("/updatenote:id", fetchuser, async (req, res) => {
+  try {
+    console.log(req.body);
+    const { title, description, tag } = req.body;
+    let newNote = {};
+    if (title) {
+      newNote.title = title;
+    }
+    if (description) {
+      newNote.description = description;
+    }
+    if (tag) {
+      newNote.tag = tag;
+    }
+    // find the note and update it
+    const note = Note.findById(req.params.id);
+    if (!note) {
+      return res.status(404).send("Not Found");
+    }
+    if (note.user.toString() !== req.user.id) {
+      return res.status(402).send("Not Allowed");
+    }
+    const updated = await Note.findByIdAndUpdate(
+      req.params.id,
+      { $set: newNote },
+      { new: true }
+    );
+    // console.log(updated);
+    res.send(updated);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).send("Error in fetching All Data");
+  }
+});
 
 export default router;
