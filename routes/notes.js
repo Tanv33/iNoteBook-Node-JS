@@ -51,20 +51,19 @@ router.post(
       const addedData = await addNote.save();
 
       if (addedData) {
-        console.log("Added Data:", addedData);
+        // console.log("Added Data:", addedData);
         res.send(addedData);
       }
     } catch (error) {
-      console.log(error.message);
+      // console.log(error.message);
       return res.status(400).send("Error in fetching All Data");
     }
   }
 );
 
 //  Route 3 Updating note corresponding to user "/updatenote" -- login required
-router.put("/updatenote:id", fetchuser, async (req, res) => {
+router.put("/updatenote/:id", fetchuser, async (req, res) => {
   try {
-    console.log(req.body);
     const { title, description, tag } = req.body;
     let newNote = {};
     if (title) {
@@ -77,23 +76,45 @@ router.put("/updatenote:id", fetchuser, async (req, res) => {
       newNote.tag = tag;
     }
     // find the note and update it
-    const note = Note.findById(req.params.id);
+    let note = await Note.findById(req.params.id);
     if (!note) {
       return res.status(404).send("Not Found");
     }
     if (note.user.toString() !== req.user.id) {
       return res.status(402).send("Not Allowed");
     }
-    const updated = await Note.findByIdAndUpdate(
+    note = await Note.findByIdAndUpdate(
       req.params.id,
       { $set: newNote },
       { new: true }
     );
-    // console.log(updated);
-    res.send(updated);
+    // console.log(note);
+    res.send(note);
+  } catch (error) {
+    // console.log(error.message);
+    return res.status(400).send("Error in fetching All Data");
+  }
+});
+
+//  Route 4 Delete Note corresponding to user "/deletenote" -- login required
+router.delete("/deletenote/:id", fetchuser, async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) {
+      return res.status(404).send("Note Not Found");
+    }
+    if (note.user.toString() !== req.user.id) {
+      return res.status(401).send("Not Allowed");
+    }
+    const deleteNote = await Note.findByIdAndDelete(req.params.id);
+    // res.send({
+    //   success: "Note Deletedd Successfully",
+    //   note: note,
+    // });
+    res.send("Note  Deleted Successfully");
   } catch (error) {
     console.log(error.message);
-    return res.status(400).send("Error in fetching All Data");
+    res.status(500).send("Internal Server Error");
   }
 });
 

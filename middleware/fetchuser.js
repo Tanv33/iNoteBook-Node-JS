@@ -12,7 +12,8 @@ const fetchuser = (req, res, next) => {
     req.user = string.user;
     next();
   } catch (error) {
-    return res.status(400).send("Error occured in middleware");
+    console.log(error);
+    return res.status(400).send("Invalid Token");
   }
 };
 
