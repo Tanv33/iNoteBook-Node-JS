@@ -1,5 +1,6 @@
 import connectToMongo from "./database.js";
 import express from "express";
+import cors from "cors";
 import notesRoute from "./routes/notes.js";
 import authRoute from "./routes/auth.js";
 
@@ -8,6 +9,11 @@ const port = 5000;
 connectToMongo();
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: true,
+  })
+);
 
 // Available routes
 // For creating user and Authentication
