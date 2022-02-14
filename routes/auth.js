@@ -19,6 +19,7 @@ router.post(
     }),
   ],
   async (req, res) => {
+    console.log(req.body);
     // checking body data comming from user
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -31,7 +32,7 @@ router.post(
       if (user) {
         return res
           .status(400)
-          .send("Sorry a user with this email already exist");
+          .send({ message: "Sorry a user with this email already exist" });
       }
       // otherwise create a new user and send created object
       const salt = await bcrypt.genSalt(10);
@@ -48,10 +49,10 @@ router.post(
       };
       const authToken = jwt.sign(data, jwtSECRET);
       // console.log(authToken);
-      res.send({ authToken });
+      res.send({ success: true, authToken });
       // res.send(user);
     } catch (error) {
-      res.status(500).send("Some Error occured");
+      res.status(500).send({ message: "Some Error occured" });
     }
   }
 );
@@ -76,12 +77,16 @@ router.post(
       let user = await User.findOne({ email });
       // if not exist return bad request with res
       if (!user) {
-        return res.status(400).send("Please Login with correct credentials");
+        return res
+          .status(400)
+          .send({ message: "Please Login with correct credentials" });
       }
       // otherwise move to next step: check password
       const checkPass = await bcrypt.compare(password, user.password);
       if (!checkPass) {
-        return res.status(400).send("Please Login with correct credentials");
+        return res
+          .status(400)
+          .send({ message: "Please Login with correct credentials" });
       }
 
       const data = {
@@ -92,10 +97,10 @@ router.post(
       const authToken = jwt.sign(data, jwtSECRET);
       // console.log(authToken);
       // console.log(user);
-      res.send({ authToken });
+      res.send({ success: true, authToken });
       // res.send(user);
     } catch (error) {
-      res.status(500).send("Some Error occured");
+      res.status(500).send({ message: "Some Error occured" });
     }
   }
 );
@@ -106,12 +111,12 @@ router.post("/getuser", fetchuser, async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(400).send("User Not Found");
+      return res.status(400).send({ message: "User Not Found" });
     }
     res.send(user);
   } catch (error) {
     console.log(error.message);
-    return res.status(400).send("Error in getting user");
+    return res.status(400).send({ message: "Error in getting user" });
   }
 });
 
